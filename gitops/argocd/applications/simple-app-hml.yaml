@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: simple-app-hml
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: oci-devops
+  source:
+    repoURL: https://gitlab.com/<group>/oci-ai-devops-platform.git
+    targetRevision: main
+    path: kubernetes/overlays/hml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: simple-app-hml
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    # Sync manual em hml — requer aprovação

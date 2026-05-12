@@ -1,0 +1,51 @@
+replicaCount: 1
+
+image:
+  repository: simple-app
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  host: app.example.com
+  tls: true
+  tlsSecret: simple-app-tls
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
+    memory: "128Mi"
+    cpu: "100m"
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  fsGroup: 101
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+
+serviceAccount:
+  create: true
+  automount: false
+
+env: dev

@@ -1,0 +1,26 @@
+# ArgoCD — App of Apps
+# Instalar ArgoCD: kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: oci-devops
+  namespace: argocd
+spec:
+  description: OCI DevOps Platform
+  sourceRepos:
+    - "*"
+  destinations:
+    - namespace: simple-app-dev
+      server: https://kubernetes.default.svc
+    - namespace: simple-app-hml
+      server: https://kubernetes.default.svc
+    - namespace: simple-app-prod
+      server: https://kubernetes.default.svc
+    - namespace: simple-app-local
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

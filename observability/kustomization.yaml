@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: observability
+
+resources:
+  - namespace.yaml
+  - prometheus/prometheus.yaml
+  - grafana/grafana.yaml
+  - loki/loki.yaml
+  - alloy/alloy.yaml
+  - alertmanager/alertmanager.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+secretGenerator:
+  - name: grafana-admin
+    literals:
+      - user=admin
+      - password=admin

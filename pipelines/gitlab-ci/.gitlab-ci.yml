@@ -1,0 +1,56 @@
+stages:
+  - build
+  - gitops
+
+variables:
+  OCI_REGION: "sa-saopaulo-1"
+  IMAGE_NAME: "simple-app"
+  ENVIRONMENT: "dev"
+  DOCKER_TLS_CERTDIR: ""
+
+build_and_push:
+  stage: build
+  image: docker:27
+  services:
+    - docker:27-dind
+  script:
+    - export SHORT_SHA="$(echo "$CI_COMMIT_SHA" | cut -c1-7)"
+    - export IMAGE="${OCI_REGION}.ocir.io/${OCIR_NAMESPACE}/oci-devops-${ENVIRONMENT}/${IMAGE_NAME}"
+    - echo "$OCI_AUTH_TOKEN" | docker login "${OCI_REGION}.ocir.io" -u "${OCI_TENANCY_NAMESPACE}/${OCI_USERNAME}" --password-stdin
+    - docker build --build-arg ENV="${ENVIRONMENT}" --build-arg VERSION="${SHORT_SHA}" -t "${IMAGE}:${ENVIRONMENT}-${SHORT_SHA}" -t "${IMAGE}:${ENVIRONMENT}-latest" app
+    - docker push "${IMAGE}:${ENVIRONMENT}-${SHORT_SHA}"
+    - docker push "${IMAGE}:${ENVIRONMENT}-latest"
+    - echo "IMAGE=${IMAGE}" >> build.env
+    - echo "IMAGE_TAG=${ENVIRONMENT}-${SHORT_SHA}" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - app/**/*
+        - pipelines/gitlab-ci/**/*
+        - .gitlab-ci.yml
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+update_gitops:
+  stage: gitops
+  image: mikefarah/yq:4
+  needs:
+    - build_and_push
+  before_script:
+    - apk add --no-cache git
+    - git config user.email "gitlab-ci@example.com"
+    - git config user.name "GitLab CI"
+  script:
+    - yq -i '(.images[] | select(.name == "simple-app") | .newName) = strenv(IMAGE) | (.images[] | select(.name == "simple-app") | .newTag) = strenv(IMAGE_TAG)' "kubernetes/overlays/${ENVIRONMENT}/kustomization.yaml"
+    - git add "kubernetes/overlays/${ENVIRONMENT}/kustomization.yaml"
+    - git commit -m "chore(gitops): deploy simple-app ${IMAGE_TAG}" || echo "No changes"
+    - git push "https://oauth2:${GITLAB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" "HEAD:${CI_COMMIT_REF_NAME}"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - app/**/*
+        - pipelines/gitlab-ci/**/*
+        - .gitlab-ci.yml
+    - if: $CI_PIPELINE_SOURCE == "web"

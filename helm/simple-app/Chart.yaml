@@ -1,0 +1,12 @@
+apiVersion: v2
+name: simple-app
+description: Aplicação simples Nginx para OCI DevOps Platform
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - nginx
+  - oci
+  - devops
+maintainers:
+  - name: DevOps Team

@@ -1,0 +1,52 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: simple-app-prod
+
+resources:
+  - namespace.yaml
+  - ../../base
+  - hpa.yaml
+  - pdb.yaml
+
+labels:
+  - pairs:
+      env: prod
+    includeSelectors: true
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "256Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "512Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: "250m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "500m"
+    target:
+      kind: Deployment
+      name: simple-app
+
+  - patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: app.example.com
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: app.example.com
+    target:
+      kind: Ingress
+      name: simple-app
+
+images:
+  - name: simple-app
+    newName: sa-saopaulo-1.ocir.io/<namespace>/oci-devops-prod/simple-app
+    newTag: prod-latest

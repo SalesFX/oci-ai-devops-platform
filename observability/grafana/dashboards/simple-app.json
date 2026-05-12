@@ -1,0 +1,15 @@
+{
+  "title": "simple-app",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP requests",
+      "targets": [
+        {
+          "expr": "sum(rate(nginx_http_requests_total[5m]))"
+        }
+      ]
+    }
+  ]
+}

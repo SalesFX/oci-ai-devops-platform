@@ -29,3 +29,7 @@ Thumbs.db
 dist/
 build/
 coverage/
+
+# Claude Code — context de sessao (conteudo real nao deve ser versionado)
+# A estrutura do diretorio e mantida pelo .gitkeep; os arquivos .md sao efemeros
+.claude/context/*.md

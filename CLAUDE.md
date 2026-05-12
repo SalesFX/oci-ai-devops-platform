@@ -13,19 +13,58 @@ O projeto possui duas frentes:
 
 | Comando | Descricao |
 | --- | --- |
-| `/plan-architecture` | Desenha ou revisa a arquitetura OCI/local. |
-| `/generate-terraform` | Gera ou evolui modulos Terraform para OCI. |
-| `/generate-k8s` | Gera manifests Kubernetes, Kustomize e Helm. |
-| `/review-security` | Revisa seguranca: RBAC, NetworkPolicy, secrets e policies. |
+| `/plan-architecture` | Desenha ou revisa a arquitetura OCI/local. Escreve handoff em `.claude/context/architect-output.md`. |
+| `/generate-terraform` | Gera ou evolui modulos Terraform para OCI. Le architect-output, escreve engineer-output. |
+| `/generate-k8s` | Gera manifests Kubernetes, Kustomize e Helm. Le architect-output, escreve engineer-output. |
+| `/review-security` | Revisa seguranca. Le engineer-output, escreve security-findings. |
+| `/sre` | Configura observabilidade, alertas, SLOs e runbooks. Le engineer-output, escreve sre-output. |
 
 ## Agents
 
 | Agent | Papel |
 | --- | --- |
-| `devops-architect` | Desenha solucoes, define componentes OCI e revisa arquitetura. |
-| `devops-engineer` | Gera Terraform, Kubernetes, Helm e pipelines CI/CD. |
-| `sre` | Configura observabilidade, alertas, runbooks e SLOs. |
-| `security` | Revisa RBAC, NetworkPolicy, secrets, OPA/Kyverno e hardening. |
+| `devops-architect` | Desenha solucoes, define componentes OCI e revisa arquitetura. Le session, escreve architect-output. |
+| `devops-engineer` | Gera Terraform, Kubernetes, Helm e pipelines CI/CD. Le architect-output, escreve engineer-output. |
+| `sre` | Configura observabilidade, alertas, runbooks e SLOs. Le engineer-output, escreve sre-output. |
+| `security` | Revisa RBAC, NetworkPolicy, secrets, OPA/Kyverno e hardening. Le engineer-output, escreve security-findings. |
+
+## Arquitetura de Agentes
+
+### Fluxo de Handoff
+
+Os agentes se comunicam via arquivos em `.claude/context/`:
+
+```
+session.md → architect-output.md → engineer-output.md → security-findings.md
+                                                        → sre-output.md
+```
+
+Antes de iniciar qualquer tarefa complexa, escreva o objetivo em `.claude/context/session.md`.
+Cada agente le o output do anterior e escreve o seu proprio antes de passar o trabalho adiante.
+
+### MCP Servers
+
+Configurados em `.claude/settings.json`:
+
+| Servidor | Uso |
+| --- | --- |
+| `fetch` | Busca docs oficiais: OCI, Terraform Registry, Kubernetes, ArgoCD |
+| `brave-search` | Busca web em tempo real: CVEs, changelogs, novos recursos OCI |
+| `git` | Inspeciona git log, diff e blame sem precisar de Bash |
+
+Para ativar `brave-search`, defina a variavel de ambiente `BRAVE_API_KEY`.
+
+### Fluxo Completo (exemplo: adicionar novo componente)
+
+```
+1. Escreva o objetivo em .claude/context/session.md
+2. /plan-architecture  → architect decide como fazer, documenta em architect-output.md
+3. /generate-terraform → engineer gera IaC lendo architect-output.md
+4. /generate-k8s       → engineer gera manifests lendo architect-output.md
+5. /review-security    → security revisa engineer-output.md, escreve findings
+6. /generate-terraform → engineer corrige com base nos security-findings.md
+7. /sre                → sre configura alertas e dashboards para o novo componente
+```
 
 ## Convencoes
 
@@ -74,6 +113,12 @@ OCI_USER_OCID=ocid1.user.oc1..xxx
 OCI_FINGERPRINT=xx:xx:xx:...
 OCI_REGION=sa-saopaulo-1
 OCIR_NAMESPACE=<tenancy-namespace>
+```
+
+## Variaveis Para MCP
+
+```bash
+BRAVE_API_KEY=<chave-da-brave-search-api>  # opcional, habilita busca web
 ```
 
 ## Padroes de Codigo

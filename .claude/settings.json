@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "description": "Busca docs oficiais: OCI, Terraform Registry, Kubernetes, ArgoCD, Helm. Sempre disponivel, sem dependencias externas."
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      },
+      "description": "OPCIONAL. Busca web em tempo real: CVEs, changelogs, novos recursos OCI. Requer BRAVE_API_KEY. Se ausente, use fetch para docs oficiais."
+    },
+    "git": {
+      "command": "uvx",
+      "args": ["mcp-server-git", "--repository", "."],
+      "description": "OPCIONAL. Inspeciona git log, diff, blame sem Bash. Requer uvx (pip install uv). Se ausente, use o Bash tool com git diretamente."
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(kubectl:*)",
+      "Bash(terraform:*)",
+      "Bash(helm:*)",
+      "Bash(docker:*)",
+      "Bash(kind:*)",
+      "Bash(git:*)",
+      "Bash(npx:*)",
+      "Bash(uvx:*)"
+    ]
+  }
+}

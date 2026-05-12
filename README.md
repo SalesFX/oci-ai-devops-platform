@@ -134,7 +134,7 @@ Infra provisionada por Terraform:
 
 | Area | O que entrega |
 | --- | --- |
-| `.claude/` | Agents e comandos para planejar, gerar, revisar e operar a plataforma com Claude Code. |
+| `.claude/` | Agents, commands, MCP e contexto de handoff para operar a plataforma com Claude Code. |
 | `app/` | Aplicacao HTML simples servida por Nginx e empacotada em container. |
 | `terraform/` | Infra OCI: VCN, subnets, gateways, NSGs, OKE, OCIR, Vault, Bastion e observabilidade nativa. |
 | `kubernetes/` | Manifests base e overlays Kustomize para local, dev, hml e prod. |
@@ -148,18 +148,18 @@ Infra provisionada por Terraform:
 
 ## Claude Code Agents
 
-O projeto inclui uma camada de automacao para evolucao assistida com Claude Code. A ideia e facilitar manutencao, extensao e revisao da arquitetura depois que o blueprint estiver no Git.
+O projeto inclui uma camada de automacao com Claude Code que vai alem de simples comandos: os agentes se comunicam entre si via handoff, consultam documentacao oficial em tempo real via MCP e acumulam contexto entre sessoes.
 
-Agents:
+### Agents
 
 | Agent | Papel |
 | --- | --- |
-| `devops-architect` | Planeja e revisa a arquitetura OCI, GitOps, rede e ambientes. |
-| `devops-engineer` | Gera e ajusta Terraform, Kubernetes, Helm e GitLab CI. |
-| `sre` | Evolui observabilidade, alertas, runbooks e confiabilidade. |
-| `security` | Revisa RBAC, NetworkPolicy, secrets, policies e hardening. |
+| `devops-architect` | Planeja e revisa arquitetura. Le `session.md`, escreve `architect-output.md`. |
+| `devops-engineer` | Gera Terraform, Kubernetes, Helm e CI/CD. Le `architect-output.md`, escreve `engineer-output.md`. |
+| `sre` | Observabilidade, alertas, SLOs e runbooks. Le `engineer-output.md`, escreve `sre-output.md`. |
+| `security` | RBAC, NetworkPolicy, secrets e hardening. Le `engineer-output.md`, escreve `security-findings.md`. |
 
-Comandos:
+### Comandos
 
 | Comando | Uso |
 | --- | --- |
@@ -167,22 +167,53 @@ Comandos:
 | `/generate-terraform` | Criar ou evoluir modulos Terraform OCI. |
 | `/generate-k8s` | Criar manifests Kubernetes, Kustomize ou Helm. |
 | `/review-security` | Revisar seguranca da stack e sugerir correcoes. |
+| `/sre` | Configurar observabilidade, alertas, SLOs e runbooks. |
 
-Arquivos:
+### MCP Servers
+
+| Servidor | Funcao |
+| --- | --- |
+| `fetch` | Busca docs OCI, Terraform Registry, Kubernetes, ArgoCD em tempo real. |
+| `brave-search` | Busca web: CVEs, changelogs, novos recursos. Requer `BRAVE_API_KEY`. |
+| `git` | Inspeciona git log, diff e blame diretamente nos agentes. |
+
+### Fluxo de Handoff
+
+Os agentes passam contexto via arquivos em `.claude/context/`:
+
+```text
+session.md
+    └─> architect-output.md   (/plan-architecture)
+            └─> engineer-output.md  (/generate-terraform, /generate-k8s)
+                    ├─> security-findings.md  (/review-security)
+                    └─> sre-output.md         (/sre)
+```
+
+### Estrutura `.claude/`
 
 ```text
 .claude/
+|-- settings.json          # MCP servers e permissoes
 |-- agents/
 |   |-- devops-architect.md
 |   |-- devops-engineer.md
 |   |-- sre.md
 |   `-- security.md
-`-- commands/
-    |-- plan-architecture.md
-    |-- generate-terraform.md
-    |-- generate-k8s.md
-    `-- review-security.md
+|-- commands/
+|   |-- plan-architecture.md
+|   |-- generate-terraform.md
+|   |-- generate-k8s.md
+|   |-- review-security.md
+|   `-- sre.md
+`-- context/               # handoff entre agentes (nao versionar conteudo)
+    |-- session.md
+    |-- architect-output.md
+    |-- engineer-output.md
+    |-- security-findings.md
+    `-- sre-output.md
 ```
+
+Documentacao completa dos agentes: [docs/agents.md](docs/agents.md).
 
 ## OCI Quick Start
 
@@ -245,6 +276,7 @@ oci-ai-devops-platform/
 ## Documentacao
 
 - [Arquitetura](docs/architecture.md)
+- [Agentes Claude Code](docs/agents.md)
 - [Networking](docs/networking.md)
 - [GitOps Flow](docs/gitops-flow.md)
 - [CI/CD](docs/ci-cd.md)

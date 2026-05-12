@@ -61,9 +61,11 @@ Nomes sugeridos:
 ```text
 01-kind-nodes.png
 02-pods-all-namespaces.png
-03-gitea-repo.png
+03-app-worker-node.png
 04-argocd-synced-healthy.png
-05-simple-app-browser.png
-06-grafana-dashboard.png
-07-prometheus-targets.png
+05-gitea-repo.png
+06-simple-app-browser.png
+07-grafana-dashboard.png
+08-prometheus-query.png
+09-alert-manager.png
 ```

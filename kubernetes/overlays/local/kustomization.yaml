@@ -17,6 +17,13 @@ patches:
       - op: replace
         path: /spec/replicas
         value: 2
+      - op: add
+        path: /spec/strategy
+        value:
+          type: RollingUpdate
+          rollingUpdate:
+            maxSurge: 0
+            maxUnavailable: 1
       - op: replace
         path: /spec/template/spec/containers/0/resources/requests/memory
         value: "64Mi"
@@ -41,6 +48,13 @@ patches:
                 - matchExpressions:
                     - key: node-role.kubernetes.io/control-plane
                       operator: DoesNotExist
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchLabels:
+                    app: simple-app
+                    env: local
+                topologyKey: kubernetes.io/hostname
       - op: add
         path: /spec/template/spec/topologySpreadConstraints
         value:

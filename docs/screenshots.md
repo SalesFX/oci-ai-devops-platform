@@ -39,6 +39,18 @@ kubectl -n observability port-forward svc/prometheus 9090:9090
 
 Print recomendado: dashboard `Simple App - Local GitOps Demo` no Grafana.
 
+No Grafana, use tambem o datasource `Loki` em `Explore` com a query:
+
+```logql
+{namespace="simple-app-local", app="simple-app"}
+```
+
+Se quiser filtrar por container:
+
+```logql
+{namespace="simple-app-local", app="simple-app", container="app"}
+```
+
 ## Gitea
 
 ```powershell

@@ -9,6 +9,7 @@ Terraform nao entra no fluxo local porque ele provisiona recursos reais na OCI. 
 - Kustomize;
 - ArgoCD;
 - Gitea;
+- ingress-nginx;
 - observability;
 - security manifests.
 

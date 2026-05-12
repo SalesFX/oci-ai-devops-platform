@@ -23,16 +23,13 @@ Terraform nao entra no fluxo local porque ele provisiona recursos reais na OCI. 
 ## Subir ambiente local
 
 ```powershell
+.\scripts\delete-local-cluster.ps1
 .\scripts\bootstrap-local.ps1
 ```
 
-A app fica acessivel via port-forward:
+O cluster local usa 1 control-plane e 2 workers para evitar executar a aplicacao no control-plane.
 
-```powershell
-kubectl -n simple-app-local port-forward svc/simple-app 8080:80
-```
-
-Depois abra:
+A app fica acessivel via Ingress:
 
 ```text
 http://localhost:8080

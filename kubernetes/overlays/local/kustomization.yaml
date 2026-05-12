@@ -32,6 +32,15 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
+      - op: add
+        path: /spec/template/spec/affinity
+        value:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: node-role.kubernetes.io/control-plane
+                      operator: DoesNotExist
     target:
       kind: Deployment
       name: simple-app
@@ -39,10 +48,10 @@ patches:
   - patch: |-
       - op: replace
         path: /spec/rules/0/host
-        value: app.localhost
+        value: localhost
       - op: replace
         path: /spec/tls/0/hosts/0
-        value: app.localhost
+        value: localhost
     target:
       kind: Ingress
       name: simple-app

@@ -37,7 +37,7 @@ Internet -> OCI Load Balancer -> Ingress -> simple-app
 kubectl -n simple-app-local port-forward svc/simple-app 8080:80
 ```
 
-Abra `http://localhost:8080`.
+Abra `http://localhost:8080`. A aplicacao local usa Ingress via `ingress-nginx`.
 
 Servicos locais:
 

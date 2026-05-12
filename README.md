@@ -142,6 +142,44 @@ Infra provisionada por Terraform:
 | `docs/` | Documentacao de arquitetura, rede, CI/CD, GitOps, observabilidade e troubleshooting. |
 | `scripts/` | Utilitarios para local demo, kubeconfig, login no OCIR e destroy. |
 
+## Claude Code Agents
+
+O projeto inclui uma camada de automacao para evolucao assistida com Claude Code. A ideia e facilitar manutencao, extensao e revisao da arquitetura depois que o blueprint estiver no Git.
+
+Agents:
+
+| Agent | Papel |
+| --- | --- |
+| `devops-architect` | Planeja e revisa a arquitetura OCI, GitOps, rede e ambientes. |
+| `devops-engineer` | Gera e ajusta Terraform, Kubernetes, Helm e GitLab CI. |
+| `sre` | Evolui observabilidade, alertas, runbooks e confiabilidade. |
+| `security` | Revisa RBAC, NetworkPolicy, secrets, policies e hardening. |
+
+Comandos:
+
+| Comando | Uso |
+| --- | --- |
+| `/plan-architecture` | Planejar ou revisar a arquitetura antes de implementar. |
+| `/generate-terraform` | Criar ou evoluir modulos Terraform OCI. |
+| `/generate-k8s` | Criar manifests Kubernetes, Kustomize ou Helm. |
+| `/review-security` | Revisar seguranca da stack e sugerir correcoes. |
+
+Arquivos:
+
+```text
+.claude/
+|-- agents/
+|   |-- devops-architect.md
+|   |-- devops-engineer.md
+|   |-- sre.md
+|   `-- security.md
+`-- commands/
+    |-- plan-architecture.md
+    |-- generate-terraform.md
+    |-- generate-k8s.md
+    `-- review-security.md
+```
+
 ## OCI Quick Start
 
 1. Configure as variaveis OCI em `terraform/environments/<env>/variables.tf`.

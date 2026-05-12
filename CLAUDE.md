@@ -1,50 +1,72 @@
-# CLAUDE.md — OCI AI DevOps Platform
+# CLAUDE.md - OCI AI DevOps Platform
 
 ## Contexto do Projeto
 
-Plataforma DevOps completa na OCI com OKE, GitOps via ArgoCD, observabilidade com Prometheus/Grafana/Loki e segurança com RBAC/NetworkPolicy/OPA.
+Plataforma DevOps completa na OCI com OKE, GitOps via ArgoCD, observabilidade com Prometheus/Grafana/Loki/Alloy/Alertmanager e seguranca com RBAC, NetworkPolicy, External Secrets e policies.
 
-## Comandos Disponíveis
+O projeto possui duas frentes:
 
-| Comando | Descrição |
-|---------|-----------|
-| `/plan-architecture` | Desenha ou revisa a arquitetura OCI |
-| `/generate-terraform` | Gera módulos Terraform para OCI |
-| `/generate-k8s` | Gera manifests Kubernetes/Helm |
-| `/review-security` | Revisa segurança (RBAC, NetworkPolicy, OPA) |
+- demo local com kind, Gitea, ArgoCD, ingress-nginx e observability;
+- blueprint OCI com Terraform, OKE, OCIR, Vault, Bastion e GitLab CI.
+
+## Comandos Disponiveis
+
+| Comando | Descricao |
+| --- | --- |
+| `/plan-architecture` | Desenha ou revisa a arquitetura OCI/local. |
+| `/generate-terraform` | Gera ou evolui modulos Terraform para OCI. |
+| `/generate-k8s` | Gera manifests Kubernetes, Kustomize e Helm. |
+| `/review-security` | Revisa seguranca: RBAC, NetworkPolicy, secrets e policies. |
 
 ## Agents
 
-- **devops-architect** — Desenha soluções, define componentes OCI, revisa arquitetura
-- **devops-engineer** — Gera Terraform, Kubernetes, Helm, pipelines CI/CD
-- **sre** — Configura observabilidade, alertas, runbooks, SLOs
-- **security** — Revisa RBAC, NetworkPolicy, secrets, OPA policies
+| Agent | Papel |
+| --- | --- |
+| `devops-architect` | Desenha solucoes, define componentes OCI e revisa arquitetura. |
+| `devops-engineer` | Gera Terraform, Kubernetes, Helm e pipelines CI/CD. |
+| `sre` | Configura observabilidade, alertas, runbooks e SLOs. |
+| `security` | Revisa RBAC, NetworkPolicy, secrets, OPA/Kyverno e hardening. |
 
-## Convenções
+## Convencoes
 
 ### Terraform
-- Módulos em `terraform/modules/`
-- Ambientes em `terraform/environments/{dev,hml,prod}/`
-- Backend: OCI Object Storage
-- Variáveis sensíveis via OCI Vault
+
+- Modulos em `terraform/modules/`.
+- Ambientes em `terraform/environments/{dev,hml,prod}/`.
+- Backend remoto em OCI Object Storage compativel com S3.
+- Variaveis sensiveis fora do Git.
+- Secrets reais via OCI Vault/External Secrets.
 
 ### Kubernetes
-- Kustomize para gerenciar ambientes
-- Base em `kubernetes/base/`, overlays em `kubernetes/overlays/{env}/`
-- Namespaces: `simple-app-{dev,hml,prod}`
-- Labels obrigatórias: `app`, `env`, `version`
+
+- Base em `kubernetes/base/`.
+- Overlays em `kubernetes/overlays/{local,dev,hml,prod}/`.
+- Namespaces: `simple-app-local`, `simple-app-dev`, `simple-app-hml`, `simple-app-prod`.
+- Labels principais: `app`, `env`, `managed-by`.
 
 ### Imagens Docker
-- Registry: `{region}.ocir.io/{tenancy}/{repo}:{tag}`
-- Tag: `{env}-{git-sha-7}`
-- Multi-stage build obrigatório
+
+- OCI: `{region}.ocir.io/{namespace}/{repo}:{tag}`.
+- Local: `simple-app:local`.
+- Tag OCI: `{env}-{git-sha-7}`.
+- Dockerfile multi-stage.
 
 ### GitOps
-- ArgoCD como ferramenta principal
-- Sync automático apenas em dev
-- hml e prod requerem aprovação manual
 
-## Variáveis de Ambiente Necessárias
+- ArgoCD como ferramenta principal.
+- Local: ArgoCD sincroniza do Gitea interno.
+- OCI: ArgoCD sincroniza do GitLab/Git remoto real.
+- Promocao entre ambientes por alteracao de tag nos overlays.
+
+### CI/CD
+
+- GitLab CI e o pipeline oficial.
+- Build da imagem.
+- Push para OCIR.
+- Atualizacao do overlay Kustomize.
+- ArgoCD reconcilia o cluster.
+
+## Variaveis Necessarias Para OCI
 
 ```bash
 OCI_TENANCY_OCID=ocid1.tenancy.oc1..xxx
@@ -54,8 +76,10 @@ OCI_REGION=sa-saopaulo-1
 OCIR_NAMESPACE=<tenancy-namespace>
 ```
 
-## Padrões de Código
+## Padroes de Codigo
 
-- Terraform: snake_case, outputs documentados, variáveis com description e type
-- K8s: kebab-case para recursos, camelCase para campos
-- Shell scripts: `set -euo pipefail`, validação de deps no início
+- Terraform: snake_case, outputs documentados, variaveis com `description` e `type`.
+- Kubernetes: kebab-case para recursos e labels claras por ambiente.
+- Shell scripts: `set -euo pipefail`.
+- PowerShell scripts: `$ErrorActionPreference = "Stop"`.
+- Nenhum secret real deve ser commitado.

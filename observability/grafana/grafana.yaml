@@ -28,6 +28,25 @@ spec:
                 secretKeyRef:
                   name: grafana-admin
                   key: password
+            - name: GF_USERS_DEFAULT_THEME
+              value: light
+          volumeMounts:
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: dashboard-provider
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: dashboards
+              mountPath: /var/lib/grafana/dashboards
+      volumes:
+        - name: datasources
+          configMap:
+            name: grafana-datasources
+        - name: dashboard-provider
+          configMap:
+            name: grafana-dashboard-provider
+        - name: dashboards
+          configMap:
+            name: grafana-dashboards
 ---
 apiVersion: v1
 kind: Service
@@ -39,3 +58,134 @@ spec:
   ports:
     - port: 80
       targetPort: 3000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+data:
+  prometheus.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        isDefault: true
+        editable: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-provider
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: local-dashboards
+        orgId: 1
+        folder: OCI DevOps Platform
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+data:
+  simple-app.json: |
+    {
+      "uid": "simple-app-local",
+      "title": "Simple App - Local GitOps Demo",
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "10s",
+      "tags": ["kubernetes", "gitops", "kind", "simple-app"],
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Simple App Scrape Health",
+          "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "max(up{namespace=\"simple-app-local\"})"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [
+                { "options": { "0": { "text": "DOWN" }, "1": { "text": "UP" } }, "type": "value" }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "center"
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Simple App Up Over Time",
+          "gridPos": { "h": 8, "w": 16, "x": 8, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "up{namespace=\"simple-app-local\"}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "min": 0,
+              "max": 1
+            }
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Prometheus Targets Up",
+          "gridPos": { "h": 6, "w": 8, "x": 0, "y": 6 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(up)"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center"
+          }
+        },
+        {
+          "type": "table",
+          "title": "Scrape Targets",
+          "gridPos": { "h": 8, "w": 16, "x": 8, "y": 8 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "up",
+              "format": "table",
+              "instant": true
+            }
+          ]
+        }
+      ]
+    }

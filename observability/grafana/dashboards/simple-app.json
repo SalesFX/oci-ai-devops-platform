@@ -1,13 +1,14 @@
 {
-  "title": "simple-app",
+  "title": "Simple App - Local GitOps Demo",
   "schemaVersion": 39,
+  "refresh": "10s",
   "panels": [
     {
-      "type": "timeseries",
-      "title": "HTTP requests",
+      "type": "stat",
+      "title": "Simple App Scrape Health",
       "targets": [
         {
-          "expr": "sum(rate(nginx_http_requests_total[5m]))"
+          "expr": "max(up{namespace=\"simple-app-local\"})"
         }
       ]
     }

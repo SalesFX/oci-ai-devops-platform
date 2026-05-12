@@ -110,6 +110,7 @@ oci-ai-devops-platform/
 - [CI/CD](docs/ci-cd.md)
 - [Observabilidade](docs/observability.md)
 - [Troubleshooting](docs/troubleshooting.md)
+- [Screenshots para Portfolio](docs/screenshots.md)
 
 ## Status
 

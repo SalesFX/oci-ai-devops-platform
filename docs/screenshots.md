@@ -80,4 +80,5 @@ Nomes sugeridos:
 07-grafana-dashboard.png
 08-prometheus-query.png
 09-alert-manager.png
+10-loki.png
 ```

@@ -102,6 +102,10 @@ $encoded = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=
 
 ![alertmanager](docs/img/09-alert-manager.png)
 
+### Logs da app no Loki
+
+![loki logs](docs/img/10-loki.png)
+
 ## Blueprint OCI
 
 Fluxo OCI:
